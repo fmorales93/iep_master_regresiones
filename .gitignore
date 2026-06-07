@@ -8,5 +8,9 @@
 # Artefactos de trabajo
 .descargas/
 
+# Python
+__pycache__/
+*.pyc
+
 # Sistema
 .DS_Store
