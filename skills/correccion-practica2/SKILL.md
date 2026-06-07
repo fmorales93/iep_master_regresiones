@@ -44,6 +44,19 @@ with pdfplumber.open(f) as pdf:
 " 2>/dev/null
 ```
 
+**1d. Extraer y verificar las capturas de pantalla (OBLIGATORIO):**
+
+El texto extraído NO incluye las imágenes. Extrae las capturas del PDF descargado (con el
+método del master, en `.descargas/<alumno>.pdf`) y **ábrelas con la herramienta Read**:
+```bash
+python3 skills/corregir-practicas/extraer-capturas.py .descargas/<alumno>.pdf .descargas/caps
+```
+No basta con contar cuántas hay: abre cada `.jpg` y comprueba que **se corresponde con lo que
+pide el enunciado**. Para esta práctica deben verse los resultados reales en Dataiku de los
+**tres modelos (OLS, Ridge y Lasso)** —resúmenes con métricas y/o comparación de coeficientes—,
+no capturas genéricas ni de otra herramienta. Este chequeo visual es el dato para aplicar la
+penalización 5.
+
 ### PASO 2 — Evaluar la práctica
 
 Con el texto completo, aplica los criterios de la rúbrica (ver sección más abajo) y determina:
@@ -155,7 +168,7 @@ Los modelos estadísticos exigidos son **OLS, Ridge y Lasso**. Los tres deben es
 
 4. **No sigue la estructura del enunciado**: Si faltan secciones o el orden es muy diferente, penaliza en DOCUMENTACIÓN Y ORGANIZACIÓN (máximo "Cumple Parcialmente").
 
-5. **Faltan capturas de pantalla**: El enunciado exige capturas de los modelos en Dataiku. Si faltan, penaliza en DOCUMENTACIÓN Y ORGANIZACIÓN.
+5. **Capturas ausentes o incoherentes**: El enunciado exige capturas de los modelos en Dataiku. Tras el PASO 1d (extraer y MIRAR las imágenes), penaliza DOCUMENTACIÓN Y ORGANIZACIÓN si no hay capturas **o** si las que hay no muestran lo pedido (no se ven los tres modelos OLS/Ridge/Lasso, son genéricas, de otra herramienta o ilegibles). Menciónalo en el comentario.
 
 ---
 

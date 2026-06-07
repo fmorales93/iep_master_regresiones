@@ -44,6 +44,20 @@ with pdfplumber.open(f) as pdf:
 " 2>/dev/null
 ```
 
+**1d. Extraer y verificar las capturas de pantalla (OBLIGATORIO):**
+
+El texto extraído NO incluye las imágenes. Extrae las capturas del PDF descargado (con el
+método del master, en `.descargas/<alumno>.pdf`) y **ábrelas con la herramienta Read**:
+```bash
+python3 skills/corregir-practicas/extraer-capturas.py .descargas/<alumno>.pdf .descargas/caps
+```
+No basta con contar cuántas hay: abre cada `.jpg` y comprueba que **se corresponde con lo que
+pide el enunciado**. Esta práctica exige tres capturas concretas y debes confirmar visualmente
+cada una: (1) resultado del modelo de **regresión logística** en Dataiku con sus métricas,
+(2) pesos/coeficientes de las variables, y (3) la **matriz de confusión con valores numéricos
+reales**. Una imagen genérica o que no muestre esto no cuenta como entregada. Este chequeo
+visual es el dato para aplicar las penalizaciones 3 y 4.
+
 ### PASO 2 — Evaluar la práctica
 
 Con el texto completo, aplica los criterios de la rúbrica (ver sección más abajo) y determina:
@@ -146,9 +160,9 @@ El alumno debe entregar:
 
 2. **No usa regresión logística**: Si el alumno usa otro modelo (árbol, SVM, etc.) sin justificarlo, penaliza COMPRENSIÓN TÉCNICA y APLICACIÓN PRÁCTICA (máximo "Cumple Parcialmente" en ambos).
 
-3. **Falta la matriz de confusión**: Es un entregable explícito del enunciado. Si no está, penaliza APLICACIÓN PRÁCTICA y DOCUMENTACIÓN Y ORGANIZACIÓN.
+3. **Falta la matriz de confusión (o no es coherente)**: Es un entregable explícito del enunciado. Tras el PASO 1d (extraer y MIRAR las imágenes), confirma visualmente que hay una captura que muestra realmente la **matriz de confusión con valores numéricos**. Si no está, o la imagen no se corresponde con eso, penaliza APLICACIÓN PRÁCTICA y DOCUMENTACIÓN Y ORGANIZACIÓN.
 
-4. **Falta el peso de variables**: Entregable obligatorio. Si no está, penaliza APLICACIÓN PRÁCTICA.
+4. **Falta el peso de variables (o no es coherente)**: Entregable obligatorio. Confirma visualmente (PASO 1d) que hay una captura que muestra los **pesos/coeficientes de las variables**. Si no está, o la imagen no se corresponde con eso, penaliza APLICACIÓN PRÁCTICA.
 
 5. **No menciona el desbalanceo de clases**: El 0,172% de fraudes es el elemento más característico del dataset. No mencionarlo indica falta de comprensión básica del problema. Penaliza COMPRENSIÓN TÉCNICA y RESOLUCIÓN DE PROBLEMAS.
 
