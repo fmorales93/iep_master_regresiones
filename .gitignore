@@ -1,0 +1,11 @@
+# Credenciales — nunca subir
+.env
+
+# Configuración local de Claude Code (rutas y permisos específicos de esta máquina)
+.claude/settings.local.json
+
+# Artefactos de trabajo
+.descargas/
+
+# Sistema
+.DS_Store
