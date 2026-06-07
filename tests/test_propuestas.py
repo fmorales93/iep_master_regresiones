@@ -1,4 +1,4 @@
-import os, sys, unittest
+import os, sys, unittest, tempfile, json
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "bot"))
 import propuestas
 
@@ -33,6 +33,27 @@ class TestValidar(unittest.TestCase):
     def test_estado_invalido(self):
         p = prop_ok(); p["estado"] = "loquesea"
         self.assertTrue(any("estado" in e.lower() for e in propuestas.validar(p)))
+
+class TestPersistencia(unittest.TestCase):
+    def test_guardar_y_cargar_roundtrip(self):
+        p = prop_ok()
+        with tempfile.TemporaryDirectory() as d:
+            ruta = os.path.join(d, "2026-06-07-p2.json")
+            propuestas.guardar(p, ruta)
+            self.assertEqual(propuestas.cargar(ruta), p)
+
+    def test_listar_ordena_y_devuelve_pares(self):
+        with tempfile.TemporaryDirectory() as d:
+            propuestas.guardar(prop_ok(), os.path.join(d, "2026-06-07-p2.json"))
+            p1 = prop_ok(); p1["practica"] = 1
+            propuestas.guardar(p1, os.path.join(d, "2026-06-07-p1.json"))
+            listado = propuestas.listar(d)
+            nombres = [os.path.basename(r) for r, _ in listado]
+            self.assertEqual(nombres, ["2026-06-07-p1.json", "2026-06-07-p2.json"])
+            self.assertEqual(listado[0][1]["practica"], 1)
+
+    def test_listar_dir_inexistente_devuelve_vacio(self):
+        self.assertEqual(propuestas.listar("/no/existe/x"), [])
 
 if __name__ == "__main__":
     unittest.main()
