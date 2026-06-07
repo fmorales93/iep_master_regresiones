@@ -79,13 +79,16 @@ de las FASES 1–4. Son la diferencia entre que el cron funcione o se quede colg
 
 ### 1.1 — Login
 
-Credenciales (cargadas desde el archivo `.env`, no versionado — ver `.env.example`):
-- URL: variable `MOODLE_LOGIN_URL`
-- Usuario: variable `MOODLE_USER`
-- Contraseña: variable `MOODLE_PASSWORD`
+Credenciales en el archivo `.env` (no versionado — ver `.env.example`). **Obtén los valores así:**
+- En **modo desatendido** el wrapper ya exportó las variables; léelas con
+  `Bash(printenv MOODLE_LOGIN_URL)`, `Bash(printenv MOODLE_USER)`, `Bash(printenv MOODLE_PASSWORD)`.
+- Si alguna sale vacía (**modo interactivo**, sin variables exportadas), léelas del archivo `.env`
+  con la herramienta Read sobre `/home/framorhid/proyectos/master-regresiones/.env`.
+
+Nunca escribas las credenciales en el SKILL ni en logs; úsalas solo para rellenar el formulario.
 
 Pasos:
-1. Navega a la URL de login.
+1. Navega a la URL de login (`MOODLE_LOGIN_URL`).
 2. Localiza el campo de usuario (placeholder "Usuario") y rellénalo.
 3. Localiza el campo de contraseña y rellénalo.
 4. Haz clic en "Entrar".

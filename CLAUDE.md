@@ -14,6 +14,12 @@ Di cualquiera de estas frases para iniciar la corrección automática completa:
 
 Lee y sigue `skills/corregir-practicas/SKILL.md` para hacer todo: login, detección de pendientes, corrección y resumen por Gmail.
 
+## Próximos pasos (LEER SIEMPRE)
+
+Lo que queda por hacer está en **`PROXIMOS-PASOS.md`**. Revísalo al empezar a trabajar en este proyecto.
+Pendiente más urgente: conectar `.env` con el flujo desatendido (bloquea el cron). Automatización
+diaria ya montada — ver `AUTOMATIZACION.md`.
+
 ## Prácticas del curso
 
 | Práctica | Tema | Herramienta | Enunciado |
