@@ -72,5 +72,27 @@ class TestPersistencia(unittest.TestCase):
             listado = propuestas.listar(d)
             self.assertEqual([os.path.basename(r) for r, _ in listado], ["2026-06-07-p2.json"])
 
+class TestMensajes(unittest.TestCase):
+    def test_un_mensaje_para_pocos_alumnos(self):
+        msgs = propuestas.construir_mensajes(prop_ok())
+        self.assertEqual(len(msgs), 1)
+        self.assertIn("Ana López", msgs[0])
+        self.assertIn("Práctica 2", msgs[0])
+        self.assertTrue(msgs[0].count("<pre>") == msgs[0].count("</pre>") >= 1)
+
+    def test_escapa_html_en_nombres(self):
+        p = prop_ok(); p["alumnos"][0]["nombre"] = "A & <B>"
+        msgs = propuestas.construir_mensajes(p)
+        self.assertIn("A &amp; &lt;B&gt;", "".join(msgs))
+
+    def test_trocea_y_respeta_limite_con_pre_balanceado(self):
+        p = prop_ok()
+        p["alumnos"] = [dict(alumno_ok(), nombre="Alumno %02d" % i) for i in range(60)]
+        msgs = propuestas.construir_mensajes(p, limite=600)
+        self.assertGreater(len(msgs), 1)
+        for m in msgs:
+            self.assertLessEqual(len(m), 600)
+            self.assertEqual(m.count("<pre>"), m.count("</pre>"))
+
 if __name__ == "__main__":
     unittest.main()

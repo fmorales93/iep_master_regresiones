@@ -47,3 +47,42 @@ def listar(dirpath):
             ruta = os.path.join(dirpath, nombre)
             pares.append((ruta, cargar(ruta)))
     return pares
+
+NOMBRES_PRACTICA = {
+    1: "Análisis de precios Idealista",
+    2: "Boston Housing (OLS + Ridge + Lasso)",
+    3: "Detección de fraude (regresión logística)",
+}
+
+def escapar_html(s):
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+def _fila_ascii(al):
+    c = al["criterios"]
+    nombre = al["nombre"][:24].ljust(24)
+    return "%s  %3s %3s %3s %3s  %4s" % (
+        nombre, c["comprension"], c["aplicacion"],
+        c["documentacion"], c["resolucion"], al["total"])
+
+def construir_mensajes(prop, limite=4096):
+    titulo = "<b>Práctica %s — %s</b>\n%d alumnos · estado: %s" % (
+        prop["practica"], NOMBRES_PRACTICA.get(prop["practica"], ""),
+        len(prop["alumnos"]), prop["estado"])
+    cabecera = "%s  %3s %3s %3s %3s  %4s" % (
+        "Alumno".ljust(24), "CT", "AP", "DO", "RP", "Tot")
+    filas = [escapar_html(_fila_ascii(al)) for al in prop["alumnos"]]
+
+    mensajes, bloque, primero = [], [], True
+    def cerrar(bloque, primero):
+        cuerpo = "<pre>" + "\n".join([escapar_html(cabecera)] + bloque) + "</pre>"
+        return (titulo + "\n" + cuerpo) if primero else cuerpo
+
+    for fila in filas:
+        candidato = cerrar(bloque + [fila], primero)
+        if len(candidato) > limite and bloque:
+            mensajes.append(cerrar(bloque, primero)); primero = False; bloque = [fila]
+        else:
+            bloque.append(fila)
+    if bloque:
+        mensajes.append(cerrar(bloque, primero))
+    return mensajes
