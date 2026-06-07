@@ -30,7 +30,9 @@ def cargar(path):
         return json.load(f)
 
 def guardar(prop, path):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+    directorio = os.path.dirname(path)
+    if directorio:
+        os.makedirs(directorio, exist_ok=True)
     tmp = path + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(prop, f, ensure_ascii=False, indent=2)

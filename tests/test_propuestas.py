@@ -55,5 +55,22 @@ class TestPersistencia(unittest.TestCase):
     def test_listar_dir_inexistente_devuelve_vacio(self):
         self.assertEqual(propuestas.listar("/no/existe/x"), [])
 
+    def test_guardar_sobrescribe_existente(self):
+        with tempfile.TemporaryDirectory() as d:
+            ruta = os.path.join(d, "2026-06-07-p2.json")
+            propuestas.guardar(prop_ok(), ruta)
+            p2 = prop_ok(); p2["estado"] = "guardada"
+            propuestas.guardar(p2, ruta)
+            self.assertEqual(propuestas.cargar(ruta)["estado"], "guardada")
+            self.assertFalse(os.path.exists(ruta + ".tmp"))
+
+    def test_listar_ignora_no_json(self):
+        with tempfile.TemporaryDirectory() as d:
+            propuestas.guardar(prop_ok(), os.path.join(d, "2026-06-07-p2.json"))
+            with open(os.path.join(d, "nota.txt"), "w") as f:
+                f.write("ruido")
+            listado = propuestas.listar(d)
+            self.assertEqual([os.path.basename(r) for r, _ in listado], ["2026-06-07-p2.json"])
+
 if __name__ == "__main__":
     unittest.main()
