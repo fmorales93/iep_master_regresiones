@@ -14,8 +14,9 @@ notas, y nada se sube a Moodle hasta que la persona lo aprueba desde **Telegram*
 
 1. **Momento de confirmación:** antes de guardar en Moodle (Telegram es la puerta real).
 2. **Granularidad:** por práctica (lote). Una tabla por práctica; un OK guarda todos sus alumnos.
-3. **Disparo:** el cron de las 8:00 sigue, pero ya no guarda solo — corrige, propone por Telegram y
-   espera el OK. (Sin `/corregir` manual de momento; trivial de añadir luego.)
+3. **Disparo:** dos vías que terminan en la misma puerta de aprobación: (a) el cron de las 8:00,
+   que ya no guarda solo — corrige, propone por Telegram y espera el OK; (b) `/corregir` manual desde
+   Telegram cuando el usuario quiera lanzarla.
 4. **Rechazo:** no guardar + permitir editar. El usuario responde ajustes en texto libre por
    Telegram; claude los aplica al JSON y el bot reenvía la tabla para reaprobar.
 5. **Enfoque técnico:** dos fases + contrato JSON + bot daemon (enfoque A).
@@ -52,7 +53,7 @@ notas, y nada se sube a Moodle hasta que la persona lo aprueba desde **Telegram*
 | `bot/bot-telegram.py` | Demonio Python stdlib (long-polling). Único que habla con Telegram. | Nuevo |
 | `propuestas/` | Un JSON por práctica = propuesta **y** estado compartido. Gitignored. | Nuevo |
 | `skills/corregir-practicas/SKILL.md` | Añadir 2 sub-modos: **proponer** (vuelca JSON, no guarda) y **guardar** (lee JSON aprobado y guarda en Moodle). | Modificar |
-| `correccion-diaria.sh` | Fase 1: lanza el modo "proponer". Además resucita el bot si no está vivo. | Modificar |
+| `correccion-diaria.sh` | Fase 1: lanza el modo "proponer". Además resucita el bot si no está vivo. Lo usan tanto el cron como `/corregir` del bot. | Modificar |
 | `guardar-aprobadas.sh` | Wrapper de Fase 2: lanza claude en modo "guardar" para una práctica. Lo invoca el bot. | Nuevo |
 | `.env` / `.env.example` | Añadir `TELEGRAM_BOT_TOKEN` y `TELEGRAM_CHAT_ID`. | Modificar |
 | `.claude/settings.local.json` | Allowlist: lectura/escritura de `propuestas/`, lo que necesite Fase 2. | Modificar |
@@ -89,7 +90,8 @@ reinicia, relee `propuestas/` y recupera lo pendiente — **sin base de datos ap
 ### Flujo
 
 ```
-8:00 cron → Fase1 claude (corrige, NO guarda) → escribe propuestas/p<N>.json (estado:pendiente)
+8:00 cron  ─┐
+/corregir ──┴→ Fase1 claude (corrige, NO guarda) → escribe propuestas/p<N>.json (estado:pendiente)
          → bot detecta JSON nuevo → manda tabla P_N con [✅ Aprobar] [✏️ Rechazar]
   Aprobar  → bot lanza guardar-aprobadas.sh N → Fase2 claude guarda en Moodle
            → marca alumnos guardado:true, estado:guardada → crea borrador Gmail → bot confirma
@@ -127,9 +129,12 @@ reinicia, relee `propuestas/` y recupera lo pendiente — **sin base de datos ap
 
 ### Comandos del bot
 
+- `/corregir` → lanza la Fase 1 (modo proponer) reusando `correccion-diaria.sh`. El bot responde de
+  inmediato ("Corrigiendo, te aviso cuando tenga la propuesta…") y, al terminar, manda las tablas.
+  Serializado con lock: si ya hay una Fase 1 en marcha (o el cron está corriendo), avisa y no lanza
+  otra.
 - `/estado` → lista qué hay en `propuestas/` y su estado.
 - `/pendientes` → reenvía las tablas que estén `pendiente` (por si se perdió el mensaje).
-- (Sin `/corregir` manual; fácil de añadir luego.)
 
 ### Casos límite
 
@@ -168,7 +173,6 @@ reinicia, relee `propuestas/` y recupera lo pendiente — **sin base de datos ap
 
 ## Fuera de alcance (YAGNI)
 
-- `/corregir` manual desde Telegram (cron es el disparo elegido).
 - Aprobación por alumno individual (se eligió por práctica).
 - Migración a NAS (FASE B; este diseño la deja preparada pero no la ejecuta).
 - Práctica final (sigue aplazada en PROXIMOS-PASOS.md).
