@@ -3,6 +3,7 @@
 
 # Configuración local de Claude Code (rutas y permisos específicos de esta máquina)
 .claude/settings.local.json
+.claude/settings.json
 
 # Artefactos de trabajo
 .descargas/
