@@ -44,19 +44,21 @@ with pdfplumber.open(f) as pdf:
 " 2>/dev/null
 ```
 
-**1d. Extraer y verificar las capturas de pantalla (OBLIGATORIO):**
+**1d. Leer el texto y verificar las capturas (OBLIGATORIO):**
 
-El texto extraído NO incluye las imágenes. Extrae las capturas del PDF descargado (con el
-método del master, en `.descargas/<alumno>.pdf`) y **ábrelas con la herramienta Read**:
+Lee la entrega con el script del proyecto, que extrae el texto y las capturas (ver método del
+master). NO improvises la extracción a mano: los PDFs del curso usan CMap, streams sin comprimir
+y capturas JPEG o bitmap RGB. Si el `.txt` sale vacío pero el PDF tiene operadores de texto, es un
+fallo de extracción, no una entrega sin redacción: no penalices por ello.
 ```bash
-python3 skills/corregir-practicas/extraer-capturas.py .descargas/<alumno>.pdf .descargas/caps
+python3 skills/corregir-practicas/leer-entrega.py .descargas/<alumno>.pdf .descargas/caps
 ```
-No basta con contar cuántas hay: abre cada `.jpg` y comprueba que **se corresponde con lo que
-pide el enunciado**. Esta práctica exige tres capturas concretas y debes confirmar visualmente
-cada una: (1) resultado del modelo de **regresión logística** en Dataiku con sus métricas,
-(2) pesos/coeficientes de las variables, y (3) la **matriz de confusión con valores numéricos
-reales**. Una imagen genérica o que no muestre esto no cuenta como entregada. Este chequeo
-visual es el dato para aplicar las penalizaciones 3 y 4.
+**Lee el `.descargas/<alumno>.txt`** (interpretación escrita del alumno) y **abre cada captura con
+Read**. No basta con contar cuántas hay: esta práctica exige tres capturas concretas y debes
+confirmar cada una: (1) resultado del modelo de **regresión logística** en Dataiku con sus
+métricas, (2) pesos/coeficientes de las variables, y (3) la **matriz de confusión con valores
+numéricos reales**. Una imagen genérica o que no muestre esto no cuenta como entregada. Este
+chequeo es el dato para aplicar las penalizaciones 3 y 4.
 
 ### PASO 2 — Evaluar la práctica
 

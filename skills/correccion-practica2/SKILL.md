@@ -44,18 +44,19 @@ with pdfplumber.open(f) as pdf:
 " 2>/dev/null
 ```
 
-**1d. Extraer y verificar las capturas de pantalla (OBLIGATORIO):**
+**1d. Leer el texto y verificar las capturas (OBLIGATORIO):**
 
-El texto extraído NO incluye las imágenes. Extrae las capturas del PDF descargado (con el
-método del master, en `.descargas/<alumno>.pdf`) y **ábrelas con la herramienta Read**:
+Lee la entrega con el script del proyecto, que extrae el texto y las capturas (ver método del
+master). NO improvises la extracción a mano: los PDFs del curso usan CMap, streams sin comprimir
+y capturas JPEG o bitmap RGB.
 ```bash
-python3 skills/corregir-practicas/extraer-capturas.py .descargas/<alumno>.pdf .descargas/caps
+python3 skills/corregir-practicas/leer-entrega.py .descargas/<alumno>.pdf .descargas/caps
 ```
-No basta con contar cuántas hay: abre cada `.jpg` y comprueba que **se corresponde con lo que
-pide el enunciado**. Para esta práctica deben verse los resultados reales en Dataiku de los
-**tres modelos (OLS, Ridge y Lasso)** —resúmenes con métricas y/o comparación de coeficientes—,
-no capturas genéricas ni de otra herramienta. Este chequeo visual es el dato para aplicar la
-penalización 5.
+**Lee el `.descargas/<alumno>.txt`** (interpretación escrita del alumno) y **abre cada captura con
+Read**. No basta con contar cuántas hay: comprueba que **se corresponden con lo que pide el
+enunciado** — los resultados reales en Dataiku de los **tres modelos (OLS, Ridge y Lasso)**
+(resúmenes con métricas y/o comparación de coeficientes), no capturas genéricas ni de otra
+herramienta. Este chequeo es el dato para aplicar la penalización 5.
 
 ### PASO 2 — Evaluar la práctica
 
