@@ -63,24 +63,27 @@ de las FASES 1–4. Son la diferencia entre que el cron funcione o se quede colg
      dentro de `evaluate_script` (usa la sesión autenticada y las cookies HttpOnly), conviértelo a
      base64 y vuélcalo con la opción `filePath` a una carpeta del proyecto, p. ej.
      `.descargas/<alumno>.json` (créala con `Bash(mkdir -p .../.descargas)`).
-   - Decodifica el base64 a `.pdf` en Bash y **extrae el texto solo con la stdlib de Python**
-     (`zlib` + `re`): descomprime cada `stream` FlateDecode y extrae los operadores `Tj`/`TJ`
-     **únicamente dentro de los bloques `BT...ET`** (así evitas el ruido binario de las imágenes).
-   - **Extrae y MIRA SIEMPRE las capturas antes de evaluar.** El texto que extraes NO
-     incluye las imágenes, así que sácalas a disco y ábrelas con la herramienta Read. No
-     basta con que existan: hay que comprobar que **muestran lo que pide el enunciado**
-     (todas las prácticas penalizan tanto su ausencia como que sean incoherentes). Es un
-     paso **obligatorio**, no opcional:
+   - Decodifica el base64 a `.pdf` en Bash y **lee la entrega con el script del proyecto**, que
+     extrae el texto y las capturas con la stdlib (sin pip). NO improvises la extracción a mano:
+     los PDFs reales del curso usan fuentes con CMap (texto hexadecimal), streams sin comprimir y
+     capturas tanto JPEG como bitmap RGB — una extracción ingenua devuelve ruido o vacío y te lleva
+     a calificar mal. El script ya cubre los tres casos:
      ```bash
-     python3 skills/corregir-practicas/extraer-capturas.py .descargas/<alumno>.pdf .descargas/caps
+     python3 skills/corregir-practicas/leer-entrega.py .descargas/<alumno>.pdf .descargas/caps
      ```
-     El script imprime `CAPTURAS_EXTRAIDAS: N` y la ruta de cada `.jpg`. **Abre cada una con
-     Read** y juzga si se corresponde con la captura exigida en esa sección (p. ej. el
-     resumen real del modelo en Dataiku con sus métricas, la matriz de confusión con valores,
-     los coeficientes/pesos de variables…). Pasa a la skill de práctica tanto el recuento
-     como qué se ve realmente en las capturas. Aplica la penalización que indique esa skill
-     cuando falten **o** cuando las imágenes no se correspondan con lo solicitado (capturas
-     genéricas, de otra herramienta, ilegibles, o que no muestran el modelo/resultado pedido).
+     Imprime `TEXT_CHARS: N  CMAP: M  IMAGES: K`, escribe el texto en `.descargas/<alumno>.txt`
+     y vuelca las capturas (`.png`/`.jpg`) en `.descargas/caps`.
+   - **LEE el `.txt` completo** (es la interpretación escrita del alumno: comprensión y resolución).
+     Si `TEXT_CHARS` es 0, sospecha de un fallo de extracción antes de concluir que "no hay texto":
+     comprueba con `grep -c` si el PDF tiene operadores de texto (`Tj`/`TJ`) y, si los hay, no
+     penalices por falta de redacción.
+   - **MIRA SIEMPRE las capturas antes de evaluar**, abriendo cada `.png`/`.jpg` con la herramienta
+     Read. No basta con que existan: hay que comprobar que **muestran lo que pide el enunciado**
+     (p. ej. el resumen real del modelo en Dataiku con sus métricas, la matriz de confusión con
+     valores, los coeficientes/pesos de variables…). Pasa a la skill de práctica tanto el texto como
+     qué se ve en las capturas. Aplica la penalización que indique esa skill cuando falten **o**
+     cuando las imágenes no se correspondan con lo solicitado (genéricas, de otra herramienta,
+     ilegibles, o que no muestran el modelo/resultado pedido).
    - Borra la carpeta `.descargas` al terminar la sesión (contiene PDFs de alumnos).
    - La URL del PDF sin `?forcedownload=1` es la del enlace `pluginfile` de la entrega.
 
