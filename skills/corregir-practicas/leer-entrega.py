@@ -5,7 +5,8 @@ Por qué este script (no `pdftotext`/`pdfplumber`): este entorno WSL no tiene pi
 librerías PDF, y los PDFs reales del curso usan formatos que rompen una extracción ingenua:
   - Texto con fuentes subset + CMap ToUnicode (cadenas hexadecimales `<00AB>` en operadores TJ).
   - Content streams a veces SIN comprimir (no FlateDecode) -> hay que tener fallback.
-  - Capturas de Dataiku como JPEG (DCTDecode) O como bitmap RGB crudo (FlateDecode, sin predictor).
+  - Capturas de Dataiku como JPEG (DCTDecode) O como bitmap crudo (FlateDecode, sin predictor):
+    DeviceRGB, DeviceGray o ICCBased (hay que resolver /N del perfil: 3=RGB, 1=gris).
 Una extracción que solo mire `(texto) Tj` en streams Flate devuelve ruido o vacío. Este lector
 maneja los tres casos. Está probado contra entregas reales de las tres prácticas.
 
@@ -91,12 +92,14 @@ def extract_text(data, cmap):
     return re.sub(r"\\([()\\])", r"\1", txt)
 
 
-def _png(w, h, rgb, path):
-    stride = w * 3
+def _png(w, h, pixels, path, comps=3):
+    """Escribe un PNG de 8 bpc. comps=3 -> RGB (color type 2); comps=1 -> gris (type 0)."""
+    color_type = 2 if comps == 3 else 0
+    stride = w * comps
     rows = bytearray()
     for y in range(h):
         rows.append(0)  # byte de filtro PNG (None) por scanline
-        rows += rgb[y * stride:(y + 1) * stride]
+        rows += pixels[y * stride:(y + 1) * stride]
     comp = zlib.compress(bytes(rows), 9)
 
     def ch(typ, d):
@@ -105,10 +108,20 @@ def _png(w, h, rgb, path):
 
     open(path, "wb").write(
         b"\x89PNG\r\n\x1a\n"
-        + ch(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0))
+        + ch(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, color_type, 0, 0, 0))
         + ch(b"IDAT", comp)
         + ch(b"IEND", b"")
     )
+
+
+def _icc_components(data, objnum):
+    """Nº de componentes (/N) del objeto ICCBased `objnum 0 obj`. RGB=3, gris=1, CMYK=4."""
+    m = re.search((r"\b%d\s+0\s+obj\b" % objnum).encode(), data)
+    if not m:
+        return None
+    seg = data[m.end():m.end() + 400]
+    nm = re.search(rb"/N\s+(\d+)", seg)
+    return int(nm.group(1)) if nm else None
 
 
 def extract_images(data, outdir):
@@ -124,12 +137,29 @@ def extract_images(data, outdir):
             continue
         n += 1
         open(os.path.join(outdir, f"cap_{n:02d}.jpg"), "wb").write(jpg)
-    # 2) Bitmap RGB crudo (FlateDecode, DeviceRGB, 8 bpc, sin predictor) -> PNG.
+    # 2) Bitmap crudo (FlateDecode, 8 bpc, sin predictor) -> PNG. Cubre DeviceRGB/DeviceGray
+    #    e ICCBased (resolviendo /N del perfil: 3=RGB, 1=gris). Dataiku exporta las capturas
+    #    como ICCBased N=3, así que sin esto se perderían (IMAGES: 0).
     for m in re.finditer(rb"/Subtype\s*/Image", data):
         start = data.rfind(b"<<", 0, m.start())
-        end = data.find(b">>", m.start())
-        dic = data[start:end]
-        if b"DCTDecode" in dic or b"DeviceRGB" not in dic:
+        s = data.find(b"stream", m.start())
+        dic = data[start:s]  # dict completo hasta `stream` (incluye DecodeParms si lo hay)
+        if b"DCTDecode" in dic or b"FlateDecode" not in dic:
+            continue
+        if not re.search(rb"/BitsPerComponent\s+8", dic):
+            continue
+        if re.search(rb"/Predictor\s+(\d+)", dic):
+            continue  # predictor PNG/TIFF no soportado: mejor saltar que volcar basura
+
+        # nº de componentes según el espacio de color
+        if b"DeviceRGB" in dic:
+            comps = 3
+        elif b"DeviceGray" in dic:
+            comps = 1
+        else:
+            icc = re.search(rb"/ICCBased\s+(\d+)\s+0\s+R", dic)
+            comps = _icc_components(data, int(icc.group(1))) if icc else None
+        if comps not in (1, 3):
             continue
 
         def gi(k):
@@ -139,7 +169,6 @@ def extract_images(data, outdir):
         w, h, ln = gi("Width"), gi("Height"), gi("Length")
         if not (w and h):
             continue
-        s = data.find(b"stream", end)
         p = s + 6
         if data[p:p + 2] == b"\r\n":
             p += 2
@@ -150,10 +179,10 @@ def extract_images(data, outdir):
             raw = zlib.decompress(payload)
         except Exception:
             continue
-        if len(raw) < w * h * 3:
+        if len(raw) < w * h * comps:
             continue
         n += 1
-        _png(w, h, raw[:w * h * 3], os.path.join(outdir, f"cap_{n:02d}.png"))
+        _png(w, h, raw[:w * h * comps], os.path.join(outdir, f"cap_{n:02d}.png"), comps)
     return n
 
 
